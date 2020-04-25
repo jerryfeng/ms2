@@ -3,7 +3,7 @@
 ## 安装
 1. Windows搜索cmd,以管理员身份运行
 2. 切换到你想安装的路径,例如安装到桌面就输入`cd C:\Users\你的用户名\Desktop\test`,回车运行
-3. 复制本库代码：`git clone https://github.com/jerryfeng/ms2.git`
+3. 复制本库代码：`git clone https://github.com/jerryfeng/ms2.git`,若没有git,请直接点右边绿色按钮下载zip并解压至安装路径
 4. 安装需求的库：`pip install pyautogui`
 
 ## 使用
