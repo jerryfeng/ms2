@@ -123,38 +123,37 @@ def openChest():
     wait(2)
 
 def getNextState():
-    global currentState
     # how I wish there's switch statement in python
     if currentState == 'initial':
         moveNextChannel()
-        currentState = 'changing channel'
+        return 'changing channel'
     elif currentState == 'changing channel':
         queueAction(checkSpawnPoint)
-        currentState = 'checking spawn point'
+        return 'checking spawn point'
     elif currentState == 'checking spawn point':
         if spawnPoint == 'LEFT':
             leftPath()
-            currentState = 'left path'
+            return 'left path'
         else:
             rightPath()
-            currentState = 'right path'
+            return 'right path'
     elif currentState == 'left path' or currentState == 'right path':
         queueAction(checkChestEmpty)
-        currentState = 'checking chest empty'
+        return 'checking chest empty'
     elif currentState == 'checking chest empty':
         if chestEmpty:
-            currentState = 'initial'
+            return 'initial'
         else:
             walkTowardsPoing()
-            currentState = 'walking towards poing'
+            return 'walking towards poing'
     elif currentState == 'walking towards poing':
         interactWithPoing()
-        currentState = 'interacting with poing'
+        return 'interacting with poing'
     elif currentState == 'interacting with poing':
         openChest()
-        currentState = 'opening chest'
+        return 'opening chest'
     elif currentState == 'opening chest':
-        currentState = 'initial'
+        return 'initial'
 
 
 tick = 0 # 10 ticks per second
@@ -176,7 +175,7 @@ while True:
 
     if on and tick % 10 == 0:
         if actionQueue.empty():
-            getNextState()
+            currentState = getNextState()
             print(f'\rcurrent state: {currentState:30} ', end="")
         else:
             action, *params = actionQueue.get()
