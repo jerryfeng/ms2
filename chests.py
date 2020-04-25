@@ -13,6 +13,7 @@ MOUNT_BUTTON = SCAN_CODE.EIGHT.value
 CRAWL_BUTTON = SCAN_CODE.PERIOD.value
 BOW_BUTTON = SCAN_CODE.F2.value
 chestEmpty = False
+gameResolution = None
 
 def PressReleaseKey(key):
     PressKey(key);
@@ -23,14 +24,22 @@ def PressReleaseKeys(keys):
     for key in keys:
         PressReleaseKey(key)
 
+def matchGameResolution():
+    for resolution in [720, 1080, 1440, 2160]:
+        found = pyautogui.locateOnScreen(f'KidelCrossingLeftSpawn{resolution}p.png', confidence = 0.9)
+        if found:
+            return resolution
+    print('Error: unable to detect game resolution')
+    quit()
+
 def checkSpawnPoint():
     global spawnPoint
-    found = pyautogui.locateOnScreen('KidelCrossingLeftSpawn.png', confidence = 0.9)
+    found = pyautogui.locateOnScreen(f'KidelCrossingLeftSpawn{gameResolution}p.png', confidence = 0.9)
     spawnPoint = 'LEFT' if found else 'RIGHT'
 
 def checkChestEmpty():
     global chestEmpty
-    found = pyautogui.locateOnScreen('KidelCrossingChestEmpty.png', confidence = 0.9)
+    found = pyautogui.locateOnScreen(f'KidelCrossingChestEmpty{gameResolution}p.png', confidence = 0.9)
     chestEmpty = True if found else False
 
 def queueAction(action, *params):
@@ -163,6 +172,9 @@ while True:
         print('--Start botting--')
         on = True
         currentState = 'initial'
+        if not gameResolution:
+            gameResolution = matchGameResolution();
+            print(f'game resolution detected: {gameResolution}p')
         time.sleep(1)
     elif pos == (width - 1, 0):
         print('\n--End botting--')
