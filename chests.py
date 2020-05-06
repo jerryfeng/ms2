@@ -34,12 +34,12 @@ def matchGameResolution():
 
 def checkSpawnPoint():
     global spawnPoint
-    found = pyautogui.locateOnScreen(f'KidelCrossingLeftSpawn{gameResolution}p.png', confidence = 0.9)
+    found = pyautogui.locateOnScreen(f'KidelCrossingLeftSpawn{gameResolution}p.png', confidence = 0.8)
     spawnPoint = 'LEFT' if found else 'RIGHT'
 
 def checkChestEmpty():
     global chestEmpty
-    found = pyautogui.locateOnScreen(f'KidelCrossingChestEmpty{gameResolution}p.png', confidence = 0.9)
+    found = pyautogui.locateOnScreen(f'KidelCrossingChestEmpty{gameResolution}p.png', confidence = 0.8)
     chestEmpty = True if found else False
 
 def queueAction(action, *params):
@@ -49,13 +49,14 @@ def queueAction(action, *params):
 # to detect commands that start / stop the script
 def nop():
     pass
-def wait(sec):
-    for i in range(sec):
+def wait(tick):
+    for i in range(tick):
         queueAction(nop)
 
 def moveNextChannel():
     global moveNextChannelTyped
     queueAction(PressReleaseKey, SCAN_CODE.RETURN.value)
+    wait(5)
     if not moveNextChannelTyped:
         # type: /moveNextChannel
         moveNextChannelKeys = [
@@ -81,62 +82,68 @@ def moveNextChannel():
         moveNextChannelTyped = True
     else:
         queueAction(PressReleaseKey, SCAN_CODE.UP.value)
+    wait(5)
     queueAction(PressReleaseKey, SCAN_CODE.RETURN.value)
-    # allow 8 seconds to change channel
-    wait(8)
+    # allow 10 seconds to change channel
+    wait(100)
 
 def leftPath():
     queueAction(PressReleaseKey, MOUNT_BUTTON)
-    queueAction(PressKeys, [SCAN_CODE.RIGHT.value, SCAN_CODE.UP.value])
-    wait(5)
+    wait(10)
+    queueAction(PressKey, SCAN_CODE.UP.value)
+    wait(45)
+    queueAction(PressKey, SCAN_CODE.RIGHT.value)
+    wait(28)
     queueAction(ReleaseKeys, [SCAN_CODE.RIGHT.value, SCAN_CODE.UP.value])
-    queueAction(PressKeys, [SCAN_CODE.LEFT.value, SCAN_CODE.UP.value])
-    wait(1)
-    queueAction(ReleaseKeys, [SCAN_CODE.LEFT.value, SCAN_CODE.UP.value])
+    wait(2)
     queueAction(PressReleaseKey, MOUNT_BUTTON)
-    wait(3)
-    queueAction(PressReleaseKeys, [SCAN_CODE.RIGHT.value, SCAN_CODE.UP.value])
+    wait(25)
 
 def rightPath():
     queueAction(PressReleaseKey, MOUNT_BUTTON)
-    queueAction(PressKeys, [SCAN_CODE.LEFT.value, SCAN_CODE.DOWN.value])
-    wait(7)
+    queueAction(PressKey, SCAN_CODE.LEFT.value)
+    wait(48)
+    queueAction(PressKey, SCAN_CODE.DOWN.value)
+    wait(46)
     queueAction(ReleaseKeys, [SCAN_CODE.LEFT.value, SCAN_CODE.DOWN.value])
-    queueAction(PressKeys, [SCAN_CODE.LEFT.value, SCAN_CODE.UP.value])
-    wait(1)
-    queueAction(ReleaseKeys, [SCAN_CODE.LEFT.value, SCAN_CODE.UP.value])
+    wait(2)
     queueAction(PressReleaseKey, MOUNT_BUTTON)
-    wait(3)
+    wait(25)
 
 def walkTowardsPoing():
     queueAction(PressKeys, [SCAN_CODE.LEFT.value, SCAN_CODE.UP.value])
-    wait(2)
+    wait(6)
     queueAction(ReleaseKeys, [SCAN_CODE.LEFT.value, SCAN_CODE.UP.value])
 
 def interactWithPoing():
     queueAction(PressReleaseKey, SCAN_CODE.SPACE.value)
+    wait(5)
     queueAction(PressReleaseKey, SCAN_CODE.SPACE.value)
-    wait(1)
+    wait(25)
     queueAction(PressReleaseKey, BOW_BUTTON)
+    wait(5)
     queueAction(PressKeys, [CRAWL_BUTTON, SCAN_CODE.UP.value])
-    wait(6)
+    wait(80)
     queueAction(ReleaseKeys, [CRAWL_BUTTON, SCAN_CODE.UP.value])
 
 def openChest():
     queueAction(PressKey, SCAN_CODE.UP.value)
-    wait(2)
+    wait(25)
     queueAction(ReleaseKey, SCAN_CODE.UP.value)
-    queueAction(PressReleaseKey, SCAN_CODE.DOWN.value)
-    queueAction(PressReleaseKey, SCAN_CODE.DOWN.value)
-    queueAction(PressKey, SCAN_CODE.SPACE.value)
+    queueAction(PressKey, SCAN_CODE.DOWN.value)
+    wait(3)
+    queueAction(ReleaseKey, SCAN_CODE.DOWN.value)
+    queueAction(PressReleaseKey, SCAN_CODE.SPACE.value)
     wait(2)
+    queueAction(PressReleaseKey, SCAN_CODE.SPACE.value)
+    wait(15)
 
 def getNextState():
     # how I wish there's switch statement in python
     if currentState == 'initial':
-        moveNextChannel()
-        return 'changing channel'
-    elif currentState == 'changing channel':
+        if HEAL_BUTTON:
+            queueAction(PressReleaseKey, HEAL_BUTTON)
+            wait(3)
         queueAction(checkSpawnPoint)
         return 'checking spawn point'
     elif currentState == 'checking spawn point':
@@ -151,7 +158,8 @@ def getNextState():
         return 'checking chest empty'
     elif currentState == 'checking chest empty':
         if chestEmpty:
-            return 'initial'
+            moveNextChannel()
+            return 'changing channel'
         else:
             walkTowardsPoing()
             return 'walking towards poing'
@@ -162,6 +170,9 @@ def getNextState():
         openChest()
         return 'opening chest'
     elif currentState == 'opening chest':
+        moveNextChannel()
+        return 'changing channel'
+    elif currentState == 'changing channel':
         return 'initial'
 
 
@@ -185,7 +196,7 @@ while True:
         print('\nProgram exits normally')
         quit()
 
-    if on and tick % 10 == 0:
+    if on:
         if actionQueue.empty():
             currentState = getNextState()
             print(f'\rcurrent state: {currentState:30} ', end="")
